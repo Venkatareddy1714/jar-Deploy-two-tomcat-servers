@@ -1,0 +1,85 @@
+pipeline {
+    agent any
+    parameters {
+        booleanParam(name: 'DEPLOY_TOMCAT1', defaultValue: true, description: 'Deploy to Tomcat1 (210.79.129.96)')
+        booleanParam(name: 'DEPLOY_TOMCAT2', defaultValue: true, description: 'Deploy to Tomcat2 (192.168.1.102)')
+    }
+    environment {
+        JAR_FILE = "/var/lib/jenkins/workspace/jarfiledeploy/upi-acq-vo-1.0.121.UAT.jar"
+        TOMCAT_USER = "ubuntu"
+        TOMCAT1_IP = "210.79.129.96"
+        TOMCAT2_IP = "210.79.129.107"
+        DEPLOY_PATH = "/home/ubuntu/deploy"
+        SSH_CREDENTIALS_ID = "7e4031ee-9f2c-4479-b3ee-00a97373fbb1"
+    }
+    stages {
+        stage('Verify SSH Connections') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(
+                        credentialsId: env.SSH_CREDENTIALS_ID,
+                        keyFileVariable: 'SSH_KEY_PATH',
+                        usernameVariable: 'SSH_USER'
+                    )]) {
+                        if (params.DEPLOY_TOMCAT1) {
+                            sh "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY_PATH \$SSH_USER@${TOMCAT1_IP} 'echo Tomcat1 Connected'"
+                        }
+                        if (params.DEPLOY_TOMCAT2) {
+                            sh "ssh -o StrictHostKeyChecking=no -i \$SSH_KEY_PATH \$SSH_USER@${TOMCAT2_IP} 'echo Tomcat2 Connected'"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Deploy JAR') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(
+                        credentialsId: env.SSH_CREDENTIALS_ID,
+                        keyFileVariable: 'SSH_KEY_PATH',
+                        usernameVariable: 'SSH_USER'
+                    )]) {
+                        if (params.DEPLOY_TOMCAT1) {
+                            sh "scp -o StrictHostKeyChecking=no -i \$SSH_KEY_PATH ${JAR_FILE} \$SSH_USER@${TOMCAT1_IP}:${DEPLOY_PATH}"
+                        }
+                        if (params.DEPLOY_TOMCAT2) {
+                            sh "scp -o StrictHostKeyChecking=no -i \$SSH_KEY_PATH ${JAR_FILE} \$SSH_USER@${TOMCAT2_IP}:${DEPLOY_PATH}"
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Restart Tomcat') {
+            steps {
+                script {
+                    withCredentials([sshUserPrivateKey(
+                        credentialsId: env.SSH_CREDENTIALS_ID,
+                        keyFileVariable: 'SSH_KEY_PATH',
+                        usernameVariable: 'SSH_USER'
+                    )]) {
+                        if (params.DEPLOY_TOMCAT1) {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no -i \$SSH_KEY_PATH \$SSH_USER@${TOMCAT1_IP} '
+                                    sudo /home/ubuntu/apache-tomcat-9.0.102/bin/shutdown.sh || true
+                                    sleep 5
+                                    sudo /home/ubuntu/apache-tomcat-9.0.102/bin/startup.sh
+                                '
+                            """
+                        }
+                        if (params.DEPLOY_TOMCAT2) {
+                            sh """
+                                ssh -o StrictHostKeyChecking=no -i \$SSH_KEY_PATH \$SSH_USER@${TOMCAT2_IP} '
+                                    sudo /home/ubuntu/apache-tomcat-9.0.102/bin/shutdown.sh || true
+                                    sleep 5
+                                    sudo /home/ubuntu/apache-tomcat-9.0.102/bin/startup.sh
+                                '
+                            """
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

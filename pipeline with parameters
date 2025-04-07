@@ -11,6 +11,7 @@ pipeline {
         TOMCAT2_IP = "210.79.129.107"
         DEPLOY_PATH = "/home/ubuntu/deploy"
         SSH_CREDENTIALS_ID = "7e4031ee-9f2c-4479-b3ee-00a97373fbb1"
+        DEPLOY_CONTEXT = "upi-acq-vo" // replace with actual context path if different
     }
     stages {
         stage('Verify SSH Connections') {
@@ -77,6 +78,21 @@ pipeline {
                                 '
                             """
                         }
+                    }
+                }
+            }
+        }
+
+        stage('Verify Deployment') {
+            steps {
+                script {
+                    if (params.DEPLOY_TOMCAT1) {
+                        echo "Checking application on Tomcat1..."
+                        sh "curl -s -o /dev/null -w '%{http_code}' http://${TOMCAT1_IP}:8080/${DEPLOY_CONTEXT}/ || echo 'Tomcat1 not reachable'"
+                    }
+                    if (params.DEPLOY_TOMCAT2) {
+                        echo "Checking application on Tomcat2..."
+                        sh "curl -s -o /dev/null -w '%{http_code}' http://${TOMCAT2_IP}:8080/${DEPLOY_CONTEXT}/ || echo 'Tomcat2 not reachable'"
                     }
                 }
             }

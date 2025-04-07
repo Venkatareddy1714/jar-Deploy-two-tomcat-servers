@@ -2,7 +2,7 @@ pipeline {
     agent any
     parameters {
         booleanParam(name: 'DEPLOY_TOMCAT1', defaultValue: true, description: 'Deploy to Tomcat1 (210.79.129.96)')
-        booleanParam(name: 'DEPLOY_TOMCAT2', defaultValue: true, description: 'Deploy to Tomcat2 (192.168.1.102)')
+        booleanParam(name: 'DEPLOY_TOMCAT2', defaultValue: true, description: 'Deploy to Tomcat2 (210.79.129.107)')
     }
     environment {
         JAR_FILE = "/var/lib/jenkins/workspace/jarfiledeploy/upi-acq-vo-1.0.121.UAT.jar"

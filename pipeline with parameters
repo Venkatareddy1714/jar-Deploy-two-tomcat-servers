@@ -1,14 +1,14 @@
 pipeline {
     agent any
     parameters {
-        booleanParam(name: 'DEPLOY_TOMCAT1', defaultValue: true, description: 'Deploy to Tomcat1 (210.79.129.96)')
-        booleanParam(name: 'DEPLOY_TOMCAT2', defaultValue: true, description: 'Deploy to Tomcat2 (210.79.129.107)')
+        booleanParam(name: 'DEPLOY_TOMCAT1', defaultValue: true, description: 'Deploy to Tomcat1 (10.0.1.0)')
+        booleanParam(name: 'DEPLOY_TOMCAT2', defaultValue: true, description: 'Deploy to Tomcat2 (10.0.2.0)')
     }
     environment {
         JAR_FILE = "/var/lib/jenkins/workspace/jarfiledeploy/upi-acq-vo-1.0.121.UAT.jar"
         TOMCAT_USER = "ubuntu"
-        TOMCAT1_IP = "210.79.129.96"
-        TOMCAT2_IP = "210.79.129.107"
+        TOMCAT1_IP = "10.0.1.0"
+        TOMCAT2_IP = "10.0.2.0"
         DEPLOY_PATH = "/home/ubuntu/deploy"
         SSH_CREDENTIALS_ID = "7e4031ee-9f2c-4479-b3ee-00a97373fbb1"
         DEPLOY_CONTEXT = "upi-acq-vo" // replace with actual context path if different
